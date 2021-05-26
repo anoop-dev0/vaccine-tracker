@@ -32,7 +32,6 @@ function vaccineTracker(){
     resp.on('end', () => {
       data = JSON.parse(data);
       if(data && data["centers"]){
-        console.log("centers available \t", data["centers"].length)
         data["centers"].forEach(center => {
           if(center["sessions"]){
             center["sessions"].forEach(session =>{
@@ -68,4 +67,4 @@ function vaccineTracker(){
   });
 };
 
-setInterval(vaccineTracker,120000);
+setInterval(vaccineTracker(),2000);
