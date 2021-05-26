@@ -68,4 +68,4 @@ function vaccineTracker(){
   });
 };
 
-setInterval(vaccineTracker,120000);
+setInterval(vaccineTracker,60000);
