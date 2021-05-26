@@ -33,7 +33,6 @@ function vaccination() {
     resp.on('end', () => {
       data = JSON.parse(data);
       if(data && data["centers"]){
-        console.log("centers - ", data["centers"].length);
 
         data["centers"].forEach(center => {
           if(center["sessions"]){
