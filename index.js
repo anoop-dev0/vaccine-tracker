@@ -34,7 +34,7 @@ function vaccineTracker() {
 
     // The whole response has been received. Print out the result.
     resp.on('end', () => {
-      if (data!=="undefined") {
+      try {
         data = JSON.parse(data);
         if (data && data["centers"]) {
           console.log("centers available \t", data["centers"].length)
@@ -60,6 +60,9 @@ function vaccineTracker() {
             }
           });
         }
+      }catch(err){
+        console.log(err);
+        console.log("Continuing");
       }
     });
 
