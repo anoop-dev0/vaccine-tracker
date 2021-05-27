@@ -1,10 +1,13 @@
 const https = require('https');
+const fs = require('fs');
+const csvWriter = require('csv-write-stream');
+const sms = require('./testSmsApi');
 
 const body = JSON.stringify({
   "sender_id": "TXTIND",
-"message": "This is a test message",
-"route": "v3",
-"numbers": "9616202185"
+  "message": "This is a test message",
+  "route": "v3",
+  "numbers": "9616202185"
 })
 
 const options = {
@@ -17,10 +20,11 @@ const options = {
     'Content-Length': body.length
   }
 }
-function vaccineTracker(){
+function vaccineTracker() {
   console.log("working")
-  const date = new Date().toLocaleDateString('en-IN');
-  https.get('https://cdn-api.co-vin.in/api/v2/appointment/sessions/calendarByDistrict?district_id=363&date=26-05-2021', (resp) => {
+  const today = new Date();
+  const date = today.toLocaleDateString('en-IN').replace('/', '-0').replace('/', '-');
+  https.get('https://cdn-api.co-vin.in/api/v2/appointment/sessions/calendarByDistrict?Accept-Language=hi_IN&district_id=363&date=' + date, (resp) => {
     let data = '';
 
     // A chunk of data has been received.
@@ -30,42 +34,52 @@ function vaccineTracker(){
 
     // The whole response has been received. Print out the result.
     resp.on('end', () => {
-      data = JSON.parse(data);
-      if(data && data["centers"]){
-        console.log("centers available \t", data["centers"].length)
-        data["centers"].forEach(center => {
-          if(center["sessions"]){
-            center["sessions"].forEach(session =>{
-              if(session["min_age_limit"] < 27 && session["available_capacity_dose1"]>0){
-                body.message = `${session["available_capacity"]} slots available at ${center["name"]}, ${center["address"]} on ${session["date"]}`;
-                options.headers['Content-Length'] = body.length
-                const req = https.request(options, resp => {
-                  console.log(`statusCode: ${resp.statusCode}`)
-                  const respData = '';
-                
-                  resp.on('data', d => {
-                    respData += d;
-                  })
-                  resp.on('end', () => {
-                    console.log(respData);
-                  })
-                })
-                
-                req.on('error', error => {
-                  console.log(error);
-                })
-                req.end();
-              }
-            })
-          }
-        });
+      if (data!=="undefined") {
+        data = JSON.parse(data);
+        if (data && data["centers"]) {
+          console.log("centers available \t", data["centers"].length)
+          data["centers"].forEach(center => {
+            if (center["sessions"]) {
+              center["sessions"].forEach(session => {
+                if (session["min_age_limit"] < 27 && session["available_capacity_dose1"] > 0) {
+                  let vaccine_data = {
+                    CENTER: center["name"],
+                    ADDRESS: center["address"],
+                    PINCODE: center["pincode"],
+                    DOSE1: session["available_capacity_dose1"],
+                    DOSE2: session["available_capacity_dose2"],
+                    AVAILABILIY_DATE: session["date"],
+                    DATE: date,
+                    TIME: today.toLocaleTimeString(),
+                  }
+                  writeToCSVFile(vaccine_data);
+                  sms(vaccine_data);
+                  console.log(`${session["available_capacity_dose1"]} slots available at ${center["name"]}, ${center["address"]} on ${session["date"]}`);
+                }
+              })
+            }
+          });
+        }
       }
-      
     });
 
   }).on("error", (err) => {
-    console.log("Error: " + err.message);
+    //console.log("Error: " + err.message);
   });
 };
 
-setInterval(vaccineTracker,60000);
+async function writeToCSVFile(vaccine_data){
+
+  let writer;
+  if (!fs.existsSync('vaccineTracker.csv'))
+    writer = csvWriter({ headers: ["CENTER", "ADDRESS", "PINCODE", "DOSE1", "DOSE2", "AVAILABILIY_DATE", "DATE", "TIME"] });
+  else
+    writer = csvWriter({ sendHeaders: false });
+
+  writer.pipe(fs.createWriteStream('vaccineTracker.csv', { flags: 'a' }))
+  writer.write(vaccine_data)
+  writer.end();
+
+}
+vaccineTracker();
+setInterval(vaccineTracker, 30000);
