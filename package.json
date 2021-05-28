@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/anoop-dev0/vaccine-tracker#readme",
   "dependencies": {
+    "crypto-js": "^4.0.0",
     "csv-write-stream": "^2.0.0",
     "exceljs": "^4.2.1",
     "play-sound": "^1.1.3",

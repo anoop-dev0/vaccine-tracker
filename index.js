@@ -10,16 +10,6 @@ const body = JSON.stringify({
   "numbers": "9616202185"
 })
 
-const options = {
-  hostname: 'https://www.fast2sms.com',
-  port: 443,
-  path: '/dev/bulkV2',
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Content-Length': body.length
-  }
-}
 function vaccineTracker() {
   console.log("working")
   const today = new Date();
@@ -52,9 +42,9 @@ function vaccineTracker() {
                     DATE: date,
                     TIME: today.toLocaleTimeString(),
                   }
+                  sms(vaccine_data, process.argv[2]);
                   writeToCSVFile(vaccine_data);
-                  sms(vaccine_data);
-                  console.log(`${session["available_capacity_dose1"]} slots available at ${center["name"]}, ${center["address"]} on ${session["date"]}`);
+                  console.log(`\t slots - ${session["available_capacity_dose1"]}\n pincode ${center["pincode"]}\n - date - ${session["date"]}\n\t  ${center["name"]}, ${center["address"]} on ${session["date"]}`);
                 }
               })
             }
