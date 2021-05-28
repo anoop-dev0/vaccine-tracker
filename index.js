@@ -13,9 +13,10 @@ const body = JSON.stringify({
 function vaccineTracker() {
   console.log("working")
   const today = new Date();
-  const date = today.toLocaleDateString('en-IN').replace('/', '-0').replace('/', '-');
-  https.get('https://cdn-api.co-vin.in/api/v2/appointment/sessions/calendarByDistrict?Accept-Language=hi_IN&district_id=363&date=' + date, (resp) => {
-    let data = '';
+  const date = today.toLocaleDateString('en-IN');
+  https.get('https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?Accept-Language=hi_IN&district_id=363&date=' + date, (resp) => {
+    // https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/findByDistrict?Accept-Language=hi_IN&district_id=363&date=26/05/2021  
+  let data = '';
 
     // A chunk of data has been received.
     resp.on('data', (chunk) => {
@@ -26,46 +27,44 @@ function vaccineTracker() {
     resp.on('end', () => {
       try {
         data = JSON.parse(data);
-        if (data && data["centers"]) {
-          console.log("centers available \t", data["centers"].length)
-          data["centers"].forEach(center => {
-            if (center["sessions"]) {
-              center["sessions"].forEach(session => {
-                if (session["min_age_limit"] < 27 && session["available_capacity_dose1"] > 0) {
-                  let vaccine_data = {
-                    CENTER: center["name"],
-                    ADDRESS: center["address"],
-                    PINCODE: center["pincode"],
-                    DOSE1: session["available_capacity_dose1"],
-                    DOSE2: session["available_capacity_dose2"],
-                    AVAILABILIY_DATE: session["date"],
-                    DATE: date,
-                    TIME: today.toLocaleTimeString(),
-                  }
-                  sms(vaccine_data, process.argv[2]);
-                  writeToCSVFile(vaccine_data);
-                  console.log(`\t slots - ${session["available_capacity_dose1"]}\n pincode ${center["pincode"]}\n - date - ${session["date"]}\n\t  ${center["name"]}, ${center["address"]} on ${session["date"]}`);
-                }
-              })
+        if (data && data["sessions"]) {
+          console.log("sessions available -", data["sessions"].length)
+
+          data["sessions"].forEach(session => {
+            if (session["min_age_limit"] < 27 && session["available_capacity_dose1"] > 0) {
+              let vaccine_data = {
+                CENTER: session["name"],
+                ADDRESS: session["address"],
+                PINCODE: session["pincode"],
+                DOSE1: session["available_capacity_dose1"],
+                DOSE2: session["available_capacity_dose2"],
+                AVAILABILIY_DATE: session["date"],
+                DATE: date,
+                TIME: today.toLocaleTimeString(),
+                FEE:session["fee"]
+              }
+              sms(vaccine_data, process.argv[2]);
+              writeToCSVFile(vaccine_data);
+              console.log(`\t slots - ${session["available_capacity_dose1"]}\n pincode ${session["pincode"]}\n - date - ${session["date"]}\n\t  ${session["name"]}, ${session["address"]} on ${session["date"]}`);
             }
-          });
+          })
         }
-      }catch(err){
-        console.log(err);
-        console.log("Continuing");
-      }
+      }catch (err) {
+  console.log(err);
+  console.log("Continuing");
+}
     });
 
   }).on("error", (err) => {
-    //console.log("Error: " + err.message);
-  });
+  //console.log("Error: " + err.message);
+});
 };
 
-async function writeToCSVFile(vaccine_data){
+async function writeToCSVFile(vaccine_data) {
 
   let writer;
   if (!fs.existsSync('vaccineTracker.csv'))
-    writer = csvWriter({ headers: ["CENTER", "ADDRESS", "PINCODE", "DOSE1", "DOSE2", "AVAILABILIY_DATE", "DATE", "TIME"] });
+    writer = csvWriter({ headers: ["CENTER", "ADDRESS", "PINCODE", "DOSE1", "DOSE2", "AVAILABILIY_DATE", "DATE", "TIME", "FEE"] });
   else
     writer = csvWriter({ sendHeaders: false });
 

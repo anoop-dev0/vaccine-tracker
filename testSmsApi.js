@@ -12,7 +12,7 @@ const bodyData = {
 
 async function sms(smsData, mobileNo) {
     try {
-        if (smsData["DOSE1"] < 10 || !mobileNo)
+        if (smsData["FEE"] > 500 || !mobileNo)
             return
         else {
             bodyData.message = `${smsData["DOSE1"]} slots available at ${smsData["CENTER"]}, ${smsData["PINCODE"]} on ${smsData["AVAILABILIY_DATE"]} ----- ${smsData["DATE"]}, ${smsData["TIME"]}`;
