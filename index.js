@@ -52,7 +52,7 @@ async function vaccineTracker(mobileNo, feeLimit) {
       try {
         console.log(typeof(data), data.length)
         data = JSON.parse(data);
-        console.log(typeof(data), Object.keys(data).length, data["sessions"].length)
+        console.log(typeof(data), data["sessions"])
         if (data && data["sessions"]) {
           console.log("sessions available -", data["sessions"].length)
 
