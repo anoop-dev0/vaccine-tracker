@@ -19,7 +19,7 @@ express()
       clearInterval(clearTrackerInterval);
     }
     vaccineTracker(req.body.mobileNo, req.body.feeLimit);
-    clearTrackerInterval=setInterval(()=>{vaccineTracker(req.body.mobileNo)}, 30000);;
+    clearTrackerInterval=setInterval(()=>{vaccineTracker(req.body.mobileNo)}, 30000);
     return res.render('pages/index', { mobileNo: req.body.mobileNo ? req.body.mobileNo : "No mobileNo input 😥" });
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`))
@@ -33,7 +33,7 @@ const body = JSON.stringify({
   "numbers": "9616202185"
 })
 
-function vaccineTracker(mobileNo, feeLimit) {
+async function vaccineTracker(mobileNo, feeLimit) {
   console.log("working")
   const today = new Date();
   const date = today.toLocaleDateString('en-IN');
@@ -54,7 +54,7 @@ function vaccineTracker(mobileNo, feeLimit) {
           console.log("sessions available -", data["sessions"].length)
 
           data["sessions"].forEach(session => {
-            if (session["min_age_limit"] < 27 && session["available_capacity_dose1"] > 0) {
+            if (session["min_age_limit"] < 43 && session["available_capacity_dose1"] > 0) {
               let vaccine_data = {
                 CENTER: session["name"],
                 ADDRESS: session["address"],
