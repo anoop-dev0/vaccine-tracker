@@ -18,8 +18,8 @@ express()
     if(clearTrackerInterval){
       clearInterval(clearTrackerInterval);
     }
-    vaccineTracker(req.body.mobileNo, req.body.feeLimit);
-    clearTrackerInterval=setInterval(()=>{vaccineTracker(req.body.mobileNo)}, 30000);
+    //vaccineTracker(req.body.mobileNo, req.body.feeLimit);
+    clearTrackerInterval=setInterval(()=>vaccineTracker(req.body.mobileNo,req.body.feeLimit), 30000);
     return res.render('pages/index', { mobileNo: req.body.mobileNo ? req.body.mobileNo : "No mobileNo input 😥" });
   })
   .listen(PORT, () => console.log(`Listening on ${PORT}`))
@@ -48,6 +48,7 @@ async function vaccineTracker(mobileNo, feeLimit) {
 
     // The whole response has been received. Print out the result.
     resp.on('end', () => {
+      console.log("working again")
       try {
         data = JSON.parse(data);
         if (data && data["sessions"]) {
